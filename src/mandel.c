@@ -210,6 +210,30 @@ unsigned mandel_compute_ompd (unsigned nb_iter)
 ///////////////////////////// Parallélistation de la version tilted avec politique de distribution dynamic en utilisant collapse
 
 
+///////////////////////////// Parallélistation de la version tilted en utilisant des tâches
+
+unsigned mandel_compute_omptask (unsigned nb_iter)
+{
+  tranche = DIM / GRAIN;
+
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+
+    // On itére sur les coordonnées des tuiles
+    #pragma omp task
+    for (int i=0; i < GRAIN; i++)
+      for (int j=0; j < GRAIN; j++)
+	traiter_tuile (i * tranche /* i debut */,
+		       j * tranche /* j debut */,
+		       (i + 1) * tranche - 1 /* i fin */,
+		       (j + 1) * tranche - 1 /* j fin */);
+
+    zoom ();
+  }
+
+  return 0;
+}
+
+
 ///////////////////////////// Version utilisant un ordonnanceur maison (sched)
 
 static unsigned proc_color [7] = {
