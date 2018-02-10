@@ -30,7 +30,7 @@ static unsigned iteration_to_color (unsigned iter)
       g = (((iter - 512) * 63) / 511) + 64;   /* 0x40FF to 0x7FFF */
     } else if (iter < 2048) {
       r = 255;
-      g = (((iter - 1024) * 63) / 1023) + 128;   /* 0x80FF to 0xBFFF */     
+      g = (((iter - 1024) * 63) / 1023) + 128;   /* 0x80FF to 0xBFFF */
     } else if (iter < 4096) {
       r = 255;
       g = (((iter - 2048) * 63) / 2047) + 192;   /* 0xC0FF to 0xFFFF */
@@ -72,7 +72,7 @@ static void zoom (void)
 {
   float xrange = (rightX - leftX);
   float yrange = (topY - bottomY);
-  
+
   leftX += ZOOM_SPEED * xrange;
   rightX -= ZOOM_SPEED * xrange;
   topY -= ZOOM_SPEED * yrange;
@@ -100,7 +100,7 @@ static unsigned compute_one_pixel (int i, int j)
     /* Stop iterations when |Z| > 2 */
     if (x2 + y2 > 4.0)
       break;
-	
+
     float twoxy = (float)2.0 * x * y;
     /* Z = Z^2 + C */
     x = x2 - y2 + xc;
@@ -149,7 +149,7 @@ void mandel_init_tiled ()
 static void traiter_tuile (int i_d, int j_d, int i_f, int j_f)
 {
   PRINT_DEBUG ('c', "tuile [%d-%d][%d-%d] traitée\n", i_d, i_f, j_d, j_f);
-  
+
   for (int i = i_d; i <= i_f; i++)
     for (int j = j_d; j <= j_f; j++)
 	cur_img (i, j) = iteration_to_color (compute_one_pixel (i, j));
@@ -158,7 +158,7 @@ static void traiter_tuile (int i_d, int j_d, int i_f, int j_f)
 unsigned mandel_compute_tiled (unsigned nb_iter)
 {
   tranche = DIM / GRAIN;
-  
+
   for (unsigned it = 1; it <= nb_iter; it ++) {
 
     // On itére sur les coordonnées des tuiles
@@ -175,15 +175,53 @@ unsigned mandel_compute_tiled (unsigned nb_iter)
   return 0;
 }
 
-///////////////////////////// Version OpenMP avec omp for (omp)
+///////////////////////////// Parallélistation de la version seq avec politique de distribution static
 
-
-unsigned mandel_compute_omp (unsigned nb_iter)
+unsigned mandel_compute_omps (unsigned nb_iter)
 {
-  // TODO
-  return 0;
-}  
 
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    #pragma parallel omp for schedule(static)
+    for (int i = 0; i < DIM; i++)
+      for (int j = 0; j < DIM; j++)
+	cur_img (i, j) = iteration_to_color (compute_one_pixel (i, j));
+
+    zoom ();
+  }
+  return 0;
+}
+
+///////////////////////////// Parallélistation de la version seq avec politique de distribution dynamic
+
+unsigned mandel_compute_ompd (unsigned nb_iter)
+{
+
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    #pragma parallel omp for schedule(dynamic)
+    for (int i = 0; i < DIM; i++)
+      for (int j = 0; j < DIM; j++)
+	cur_img (i, j) = iteration_to_color (compute_one_pixel (i, j));
+
+    zoom ();
+  }
+  return 0;
+}
+
+///////////////////////////// Parallélistation de la version tilted avec politique de distribution dynamic en utilisant collapse
+
+unsigned mandel_compute_ompd (unsigned nb_iter)
+{
+
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    #pragma parallel omp for schedule(dynamic)
+    for (int i = 0; i < DIM; i++)
+      for (int j = 0; j < DIM; j++)
+	cur_img (i, j) = iteration_to_color (compute_one_pixel (i, j));
+
+    zoom ();
+  }
+  return 0;
+}
 
 ///////////////////////////// Version utilisant un ordonnanceur maison (sched)
 
@@ -272,7 +310,7 @@ static void compute_task (void *p, unsigned proc)
   int i, j;
 
   unpack (p, &i, &j);
-  
+
   //PRINT_DEBUG ('s', "Compute Task is running on tile (%d, %d) over cpu #%d\n", i, j, proc);
   traiter_tuile (i * tranche, j * tranche, (i + 1) * tranche - 1, (j + 1) * tranche - 1);
 #if 1
@@ -297,7 +335,7 @@ unsigned mandel_compute_sched (unsigned nb_iter)
 
     zoom ();
   }
-  
+
   return 0;
 }
 
@@ -316,9 +354,9 @@ unsigned mandel_compute_ocl (unsigned nb_iter)
   size_t local[2]  = { TILEX, TILEY };  // local domain size for our calculation
   cl_int err;
   unsigned max_iter = MAX_ITERATIONS;
-  
+
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    
+
     // Set kernel arguments
     //
     err = 0;

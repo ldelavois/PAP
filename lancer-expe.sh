@@ -8,7 +8,7 @@ THREADS=$(seq 2 2 24) # nombre de threads
 PARAM="./prog -l images/shibuya.png -k scrollup -n -i 500 -v " # parametres commun à toutes les executions
 
 execute (){
-EXE="$* $PARAM"
+EXE="$PARAM $*"
 OUTPUT="$(echo $* | tr -d ' ')"
 for nb in $ITE;
 	do for OMP_NUM_THREADS in $THREADS;

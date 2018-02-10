@@ -26,7 +26,8 @@ unsigned scrollup_compute_seq (unsigned nb_iter)
 
   return 0;
 }
-//duplication de la fonction précedente
+
+//Parallisation avec politique de distribution static
 unsigned scrollup_compute_omp (unsigned nb_iter)
 {
   for (unsigned it = 1; it <= nb_iter; it ++) {
@@ -41,7 +42,8 @@ unsigned scrollup_compute_omp (unsigned nb_iter)
   return 0;
 }
 
-unsigned scrollup_compute_ompd (unsigned nb_iter)
+//Parallisation avec politique de distribution dynamic
+unsigned scrollup_compute_omp_d (unsigned nb_iter)
 {
   for (unsigned it = 1; it <= nb_iter; it ++) {
     #pragma omp parallel for schedule(dynamic)
