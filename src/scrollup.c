@@ -26,11 +26,11 @@ unsigned scrollup_compute_seq (unsigned nb_iter)
 
   return 0;
 }
-
+//duplication de la fonction précedente
 unsigned scrollup_compute_omp (unsigned nb_iter)
 {
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    #pragma omp parallel for
+    #pragma omp parallel for //ajoute d'une parallelisation de boucle for
     for (int i = 0; i < DIM; i++)
       for (int j = 0; j < DIM; j++)
    	next_img (i, j) = (i == DIM - 1) ? cur_img (0, j) : cur_img (i + 1, j);
