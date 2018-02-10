@@ -209,19 +209,6 @@ unsigned mandel_compute_ompd (unsigned nb_iter)
 
 ///////////////////////////// Parallélistation de la version tilted avec politique de distribution dynamic en utilisant collapse
 
-unsigned mandel_compute_ompd (unsigned nb_iter)
-{
-
-  for (unsigned it = 1; it <= nb_iter; it ++) {
-    #pragma parallel omp for schedule(dynamic)
-    for (int i = 0; i < DIM; i++)
-      for (int j = 0; j < DIM; j++)
-	cur_img (i, j) = iteration_to_color (compute_one_pixel (i, j));
-
-    zoom ();
-  }
-  return 0;
-}
 
 ///////////////////////////// Version utilisant un ordonnanceur maison (sched)
 
