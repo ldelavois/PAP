@@ -216,7 +216,7 @@ unsigned mandel_compute_omptiled (unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++) {
 
     // On itére sur les coordonnées des tuiles
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for schedule(dynamic) collapse(2)
     for (int i=0; i < GRAIN; i++)
       for (int j=0; j < GRAIN; j++)
 	traiter_tuile (i * tranche /* i debut */,
@@ -241,9 +241,9 @@ unsigned mandel_compute_omptask (unsigned nb_iter)
     // On itére sur les coordonnées des tuiles
     #pragma omp parallel
     #pragma omp master
-    #pragma omp taskloop
     for (int i=0; i < GRAIN; i++)
       for (int j=0; j < GRAIN; j++)
+      #pragma omp task firstprivate(i, j, tranche)
 	traiter_tuile (i * tranche /* i debut */,
 		       j * tranche /* j debut */,
 		       (i + 1) * tranche - 1 /* i fin */,
