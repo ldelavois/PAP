@@ -5,7 +5,7 @@ ITE=$(seq 10) # nombre de mesures
 
 THREADS=$(seq 2 2 24) # nombre de threads
 
-PARAM="./prog -l images/shibuya.png -k scrollup -n -i 500 -v " # parametres commun à toutes les executions
+PARAM="./prog -s 512 -k mandel -n -i 100 -v " # parametres commun à toutes les executions
 
 execute (){
 EXE="$PARAM $*"
@@ -18,5 +18,7 @@ for nb in $ITE;
 done
 }
 
-execute omp
-execute omp_d
+execute omps
+execute ompd
+execute omptiled
+execute omptask
